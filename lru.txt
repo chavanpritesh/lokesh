@@ -1,0 +1,119 @@
+import java.util.*;
+
+public class pagereplacement {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter the number of frames: ");
+        int capacity = scanner.nextInt();
+
+        System.out.print("Enter the number of page references: ");
+        int n = scanner.nextInt();
+
+        System.out.print("Enter the page reference sequence: ");
+        int[] pages = new int[n];
+        for (int i = 0; i < n; i++) {
+            pages[i] = scanner.nextInt();
+        }
+
+        System.out.println("\n1. Least Recently Used (LRU)");
+        System.out.println("2. Optimal Algorithm");
+        System.out.print("Choose an algorithm (1 or 2): ");
+        int choice = scanner.nextInt();
+
+        if (choice == 1) {
+            performLRU(pages, capacity);
+        } else if (choice == 2) {
+            performOptimal(pages, capacity);
+        } else {
+            System.out.println("Invalid choice. Exiting.");
+        }
+
+        scanner.close();
+    }
+
+    static void performLRU(int[] pages, int capacity) {
+        Set<Integer> frameSet = new LinkedHashSet<>(capacity);
+        List<Integer> frameList = new ArrayList<>(capacity);
+
+        int pageFaults = 0;
+
+        for (int page : pages) {
+            if (!frameSet.contains(page)) {
+                if (frameList.size() == capacity) {
+                    int leastRecentlyUsed = frameList.remove(0);
+                    frameSet.remove(leastRecentlyUsed);
+                }
+                frameList.add(page);
+                frameSet.add(page);
+                pageFaults++;
+            } else {
+                // Page is already in the frame
+                frameList.remove(Integer.valueOf(page));
+                frameList.add(page);
+            }
+
+            // Print the current state of frames
+            System.out.print("Frames: ");
+            for (int value : frameList) {
+                System.out.print(value + " ");
+            }
+            System.out.println();
+        }
+
+        System.out.println("Total Page Faults (LRU): " + pageFaults);
+    }
+
+    static void performOptimal(int[] pages, int capacity) {
+        Set<Integer> frameSet = new LinkedHashSet<>(capacity);
+
+        int pageFaults = 0;
+
+        for (int i = 0; i < pages.length; i++) {
+            if (!frameSet.contains(pages[i])) {
+                if (frameSet.size() == capacity) {
+                    int pageToReplace = findOptimalPage(pages, frameSet, i);
+                    frameSet.remove(pageToReplace);
+                }
+                frameSet.add(pages[i]);
+                pageFaults++;
+            }
+
+            // Print the current state of frames
+            System.out.print("Frames: ");
+            for (int value : frameSet) {
+                System.out.print(value + " ");
+            }
+            System.out.println();
+        }
+
+        System.out.println("Total Page Faults (Optimal): " + pageFaults);
+    }
+
+    static int findOptimalPage(int[] pages, Set<Integer> frameSet, int startIndex) {
+        int farthestIndex = -1;
+        int farthestPage = -1;
+
+        for (Integer framePage : frameSet) {
+            int index = findNextOccurrence(pages, startIndex, framePage);
+            if (index == -1) {
+                return framePage;
+            }
+            if (index > farthestIndex) {
+                farthestIndex = index;
+                farthestPage = framePage;
+            }
+        }
+
+        return farthestPage;
+    }
+
+    static int findNextOccurrence(int[] pages, int startIndex, int targetPage) {
+        for (int i = startIndex; i < pages.length; i++) {
+            if (pages[i] == targetPage) {
+                return i;
+            }
+        }
+        return -1;
+    }
+}
